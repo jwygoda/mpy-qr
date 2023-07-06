@@ -181,11 +181,12 @@ STATIC MP_DEFINE_CONST_FUN_OBJ_1(rendered_qr_width_obj, rendered_qr_width);
 // - 0 < (pad=W-H) <= 7
 //
     STATIC mp_obj_t
-rendered_qr_packed(mp_obj_t self_in)
+rendered_qr_packed(mp_obj_t self_in, mp_obj_t scale_obj)
 {
     mp_obj_rendered_qr_t *self = MP_OBJ_TO_PTR(self_in);
 
-    int w = qrcodegen_getSize(self->rendered);
+    int scale = mp_obj_get_int(scale_obj);
+    int w = qrcodegen_getSize(self->rendered) * scale;
     int sz = (w + 7) & ~0x7;
     int pad = sz - w;      // can be zero (but unlikely, since QR's are odd sizes)
 
@@ -197,7 +198,7 @@ rendered_qr_packed(mp_obj_t self_in)
     for(int y=0; y < w; y++) {
         uint8_t bm = 0;
         for(int x=0; x < w; x++) {
-            bool h = qrcodegen_getModule(self->rendered, x, y);
+            bool h = qrcodegen_getModule(self->rendered, x/scale, y/scale);
             bm = (bm << 1) | h;
 
             if(x == w-1) {
@@ -219,7 +220,7 @@ rendered_qr_packed(mp_obj_t self_in)
 
     return MP_OBJ_FROM_PTR(rv);
 }
-STATIC MP_DEFINE_CONST_FUN_OBJ_1(rendered_qr_packed_obj, rendered_qr_packed);
+STATIC MP_DEFINE_CONST_FUN_OBJ_2(rendered_qr_packed_obj, rendered_qr_packed);
 
 // rendered_qr_get()
 //
